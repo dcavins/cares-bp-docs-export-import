@@ -1,0 +1,19 @@
+{
+  "name": "cares-bp-docs-export-import",
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-postcss": "latest",
+    "postcss-flexbugs-fixes": "latest",
+    "autoprefixer": "latest",
+    "cssnano": "latest",
+    "grunt-contrib-imagemin": "latest",
+    "grunt-contrib-jshint": "latest",
+    "grunt-contrib-uglify": "latest",
+    "grunt-contrib-watch": "latest",
+    "grunt-sass": "latest",
+    "load-grunt-tasks": "latest",
+    "matchdep": "latest"
+  },
+  "license": "GPL-2.0+",
+  "version": "1.0.0"
+}
