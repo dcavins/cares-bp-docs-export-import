@@ -249,21 +249,21 @@ class cbpdimport_Admin {
 	public function settings_init() {
 
 		// Color customizations.
-		add_settings_section(
-			'cdt_custom_colors',
-			__( 'Update the key colors in the Data Tools window to match this site\'s theme.', 'cares-bp-docs-export-import' ),
-			array( $this, 'cdt_custom_colors_section_callback' ),
-			$this->plugin_slug
-		);
+		// add_settings_section(
+		// 	'cdt_custom_colors',
+		// 	__( 'Update the key colors in the Data Tools window to match this site\'s theme.', 'cares-bp-docs-export-import' ),
+		// 	array( $this, 'cdt_custom_colors_section_callback' ),
+		// 	$this->plugin_slug
+		// );
 
-		register_setting( $this->plugin_slug, 'cdt_custom_colors', array( $this, 'sanitize_custom_colors' ) );
-		add_settings_field(
-			'cdt_custom_colors',
-			__( 'Customize the colors.', 'cares-bp-docs-export-import' ),
-			array( $this, 'render_color_customization' ),
-			$this->plugin_slug,
-			'cdt_custom_colors'
-		);
+		// register_setting( $this->plugin_slug, 'cdt_custom_colors', array( $this, 'sanitize_custom_colors' ) );
+		// add_settings_field(
+		// 	'cdt_custom_colors',
+		// 	__( 'Customize the colors.', 'cares-bp-docs-export-import' ),
+		// 	array( $this, 'render_color_customization' ),
+		// 	$this->plugin_slug,
+		// 	'cdt_custom_colors'
+		// );
 	}
 
 	/**
@@ -284,7 +284,7 @@ class cbpdimport_Admin {
 
 	$towrite = PHP_EOL . '$this->plugin_slug' . print_r( $this->plugin_slug, TRUE );
 	$towrite .= PHP_EOL . '$tplugin_page' . print_r( $plugin_page, TRUE );
-	$fp = fopen('/Users/dcavins/Sites/develop.git.wordpress.org/src/wp-content/docs-export.txt', 'a');
+	$fp = fopen('/Users/dcavins/Sites/commons-export/wp-content/docs-export.txt', 'a');
 	fwrite($fp, $towrite);
 	fclose($fp);
 
@@ -363,7 +363,37 @@ class cbpdimport_Admin {
 		if ( bp_docs_has_docs( $doc_args ) ) {
 			while ( bp_docs_has_docs() ) {
 				bp_docs_the_doc();
-				$data[get_the_ID()] = get_the_title();
+				$doc_id = get_the_ID();
+
+				$taxonomies = array('bp_docs_associated_item', 'bp_docs_access', 'bp_docs_comment_access', 'bp_docs_tag', 'bp_docs_type');
+				$tax_terms = array();
+				foreach ( $taxonomies as $tax_name ) {
+					$tax_terms[$tax_name] = array();
+					$terms = get_the_terms( $doc_id, $tax_name );
+					if ( $terms ) {
+						foreach ( $terms as $term ) {
+							$tax_terms[$tax_name][] = array( 'term_id' => $term->term_id, 'slug' => $term->slug );
+						}
+					}
+				}
+
+				$meta = get_post_meta( $doc_id );
+				// Add the email address of the user--it's portable.
+				if ( ! empty( $meta['bp_docs_last_editor'] ) ) {
+					$last_editor_obj = get_user_by( 'id', $meta['bp_docs_last_editor'][0] );
+					$meta['bp_docs_last_editor_email'] = array( $last_editor_obj->user_email );
+				}
+				// unserialize the doc settings
+				if ( ! empty( $meta['bp_docs_settings'] ) ) {
+					$meta['bp_docs_settings'][0] = maybe_unserialize( $meta['bp_docs_settings'][0] );
+				}
+
+				$data[get_the_ID()] = array(
+					'title'   => get_the_title(),
+					'content' => get_the_content(),
+					'terms'   => $tax_terms,
+					'meta'    => $meta,
+				);
 			}
 		}
 
